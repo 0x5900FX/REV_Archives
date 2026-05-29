@@ -1,5 +1,6 @@
 ---
 import "../../styles/global.css";
+import Analytics from "@vercel/analytics/astro";
 import { appearanceConfig, siteConfig } from "../../config";
 import { appearanceCssVariables } from "../../modules/textmode/core/css-vars";
 
@@ -58,6 +59,7 @@ const appearanceCss = appearanceCssVariables(appearanceConfig);
   </head>
   <body>
     <slot />
+    <Analytics />
     <script>
       import { effectsConfig, textmodeConfig } from "../../config";
 
