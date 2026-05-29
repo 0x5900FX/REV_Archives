@@ -12,7 +12,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "pnpm assets:fonts && pnpm check && astro build",
+    "build": "pnpm check && astro build",
     "preview": "astro preview",
     "check": "astro check && biome check .",
     "format": "biome format --write .",

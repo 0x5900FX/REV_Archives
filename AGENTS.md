@@ -24,3 +24,4 @@
 - `pnpm lint`
 - `pnpm check`
 - `pnpm build`
+- `pnpm assets:fonts` after changing CJK font coverage
