@@ -114,5 +114,11 @@ function renderLabel(item: HomeItem, label: string): string {
 <script>
   import { initHomeAsciiGlitch } from "../../modules/textmode/glitch/home";
 
-  initHomeAsciiGlitch();
+  window.addEventListener(
+    "load",
+    () => {
+      window.setTimeout(initHomeAsciiGlitch, 1200);
+    },
+    { once: true, passive: true }
+  );
 </script>

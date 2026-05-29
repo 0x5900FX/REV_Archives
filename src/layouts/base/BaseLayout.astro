@@ -85,10 +85,29 @@ const appearanceCss = appearanceCssVariables(appearanceConfig);
       loadFit();
       fitMedia.addEventListener("change", loadFit, { passive: true });
 
+      const runWhenIdle = (callback: () => void) => {
+        window.setTimeout(() => {
+          if ("requestIdleCallback" in window) {
+            window.requestIdleCallback(callback, { timeout: 1600 });
+            return;
+          }
+
+          callback();
+        }, 1200);
+      };
+
       if (particlesEnabled && !reducedMotion) {
-        void import("../../modules/textmode/particles/install").then(({ installAsciiParticles }) => {
-          installAsciiParticles();
-        });
+        window.addEventListener(
+          "load",
+          () => {
+            runWhenIdle(() => {
+              void import("../../modules/textmode/particles/install").then(({ installAsciiParticles }) => {
+                installAsciiParticles();
+              });
+            });
+          },
+          { once: true, passive: true }
+        );
       }
     </script>
   </body>

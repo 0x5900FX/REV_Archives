@@ -48,7 +48,7 @@ export const appearanceConfig: AppearanceConfig = {
   fonts: {
     asciiFamily: "gohu",
     cjkFamily: "WenQuanYi Sharp",
-    asciiUrl: "/fonts/gohu.woff",
+    asciiUrl: "/fonts/gohu-subset.woff",
     asciiFormat: "woff",
     cjkUrl: "/fonts/wqy-zenhei-sharp-bitmap-subset.ttf",
     cjkFormat: "truetype"

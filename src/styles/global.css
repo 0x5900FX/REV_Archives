@@ -90,7 +90,9 @@ body:has(.volume-wrap) .ascii-particles span {
 
 a {
   color: var(--link);
-  text-decoration: none;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 2px;
 }
 
 a:hover,
