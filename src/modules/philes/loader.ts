@@ -101,7 +101,7 @@ function parsePhile(source: string): { data: Frontmatter; body: string } {
     throw new Error("Phile entries must start with YAML frontmatter.");
   }
 
-  const end = normalized.indexOf("\n---", 4);
+  const end = normalized.indexOf("\n---\n", 4);
 
   if (end === -1) {
     throw new Error("Phile frontmatter is missing a closing delimiter.");
@@ -109,7 +109,7 @@ function parsePhile(source: string): { data: Frontmatter; body: string } {
 
   return {
     data: parseFrontmatter(normalized.slice(4, end)),
-    body: normalized.slice(end + 4).replace(/^\n/, "")
+    body: normalized.slice(end + 5)
   };
 }
 

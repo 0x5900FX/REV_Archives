@@ -1,8 +1,15 @@
 import { execFileSync } from "node:child_process";
-import { existsSync, mkdtempSync, promises as fs, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  promises as fs,
+  rmSync,
+  writeFileSync
+} from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { pyftsubsetCommand, uvEnv } from "./lib/fonttools.mjs";
 
 const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
 const cjkSourceFont = path.join(root, "fonts/wqy-zenhei-sharp-0.9.45.ttf");
@@ -11,52 +18,50 @@ const asciiSourceFont = path.join(root, "fonts/gohu.woff");
 const asciiOutputFont = path.join(root, "public/fonts/gohu-subset.woff");
 const contentRoots = ["src/content", "src/config", "src/components", "src/pages"];
 const textExtensions = new Set([".astro", ".phile", ".ts"]);
-const textFile = path.join(mkdtempSync(path.join(os.tmpdir(), "entropic-font-")), "chars.txt");
+const pyftsubset = pyftsubsetCommand();
+const tempDir = mkdtempSync(path.join(os.tmpdir(), "entropic-font-"));
+const textFile = path.join(tempDir, "chars.txt");
 
-if (!existsSync(cjkSourceFont)) {
-  throw new Error(`Missing source font: ${path.relative(root, cjkSourceFont)}`);
+try {
+  if (!existsSync(cjkSourceFont)) {
+    throw new Error(`Missing source font: ${path.relative(root, cjkSourceFont)}`);
+  }
+
+  if (!existsSync(asciiSourceFont)) {
+    throw new Error(`Missing source font: ${path.relative(root, asciiSourceFont)}`);
+  }
+
+  const chars = await collectChars();
+  await fs.mkdir(path.dirname(cjkOutputFont), { recursive: true });
+  writeFileSync(textFile, chars, "utf8");
+
+  subsetAsciiFont();
+  subsetCjkFont();
+} finally {
+  rmSync(tempDir, { force: true, recursive: true });
 }
-
-if (!existsSync(asciiSourceFont)) {
-  throw new Error(`Missing source font: ${path.relative(root, asciiSourceFont)}`);
-}
-
-const chars = await collectChars();
-await fs.mkdir(path.dirname(cjkOutputFont), { recursive: true });
-writeFileSync(textFile, chars, "utf8");
-
-subsetAsciiFont();
-subsetCjkFont();
 
 function subsetAsciiFont() {
-  execFileSync(
-    "pyftsubset",
-    [
-      asciiSourceFont,
-      `--output-file=${asciiOutputFont}`,
-      "--unicodes=U+0000-00FF,U+03BB,U+2190-21FF,U+2500-259F,U+25A0-25FF,U+2600-26FF",
-      "--layout-features=*",
-      "--flavor=woff"
-    ],
-    { stdio: "inherit" }
-  );
+  runPyftsubset([
+    asciiSourceFont,
+    `--output-file=${asciiOutputFont}`,
+    "--unicodes=U+0000-00FF,U+03BB,U+2190-21FF,U+2500-259F,U+25A0-25FF,U+2600-26FF",
+    "--layout-features=*",
+    "--flavor=woff"
+  ]);
 }
 
 function subsetCjkFont(output = cjkOutputFont) {
-  execFileSync(
-    "pyftsubset",
-    [
-      cjkSourceFont,
-      `--output-file=${output}`,
-      `--text-file=${textFile}`,
-      "--layout-features=*",
-      "--desubroutinize",
-      "--drop-tables-=EBDT,EBLC,BDF",
-      "--no-subset-tables+=EBDT,EBLC,BDF",
-      "--passthrough-tables"
-    ],
-    { stdio: "inherit" }
-  );
+  runPyftsubset([
+    cjkSourceFont,
+    `--output-file=${output}`,
+    `--text-file=${textFile}`,
+    "--layout-features=*",
+    "--desubroutinize",
+    "--drop-tables-=EBDT,EBLC,BDF",
+    "--no-subset-tables+=EBDT,EBLC,BDF",
+    "--passthrough-tables"
+  ]);
 }
 
 async function collectChars() {
@@ -99,4 +104,11 @@ async function listTextFiles(dir) {
 
 function isCjkFontChar(char) {
   return /[\u3000-\u303f\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff\uff00-\uffef]/u.test(char);
+}
+
+function runPyftsubset(args) {
+  execFileSync(pyftsubset.command, [...pyftsubset.prefixArgs, ...args], {
+    env: uvEnv,
+    stdio: "inherit"
+  });
 }

@@ -133,7 +133,27 @@ Commands
         regenerate font subsets and CJK atlases
 
 Font assets are committed.  Normal production builds do not require local font
-tooling such as `pyftsubset`.
+tooling.
+
+Run `pnpm assets:fonts` only when the committed font outputs need to change:
+
+    after editing font source files under `fonts/`
+    after changing CJK glyph coverage or bitmap atlas generation
+    after changing text that introduces new CJK glyphs which must render via
+        the bitmap CJK atlas
+    after changing the font subset scripts themselves
+
+The command regenerates:
+
+    public/fonts/gohu-subset.woff
+    public/fonts/wqy-zenhei-sharp-bitmap-subset.ttf
+    public/assets/cjk/wqy-cjk-body.png
+    public/assets/cjk/wqy-cjk-link.png
+    src/generated/cjk-atlas.ts
+
+Regenerating these assets requires `fonttools`.  If `pyftsubset` is already on
+`PATH`, the scripts use it directly.  Otherwise, with `uv` installed, the
+scripts resolve `fonttools` automatically and keep the uv cache under `/tmp`.
 
 
 Branches

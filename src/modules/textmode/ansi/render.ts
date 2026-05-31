@@ -144,7 +144,7 @@ function renderInkBlock(lines: string[], width: number): string[] {
     const maskMatch = lines[cursor + 1]?.match(inkMaskPrefixPattern);
 
     if (textMatch && maskMatch) {
-      output.push(renderInkTextLine(textMatch[1] ?? "", maskMatch[1] ?? "", width));
+      output.push(...renderInkTextLine(textMatch[1] ?? "", maskMatch[1] ?? "", width));
       cursor += 2;
       continue;
     }
@@ -161,7 +161,7 @@ function renderInkBlock(lines: string[], width: number): string[] {
   return output;
 }
 
-function renderInkTextLine(text: string, mask: string, width: number): string {
+function renderInkTextLine(text: string, mask: string, width: number): string[] {
   const chunks: RenderChunk[] = [];
   let index = 0;
 
@@ -171,11 +171,7 @@ function renderInkTextLine(text: string, mask: string, width: number): string {
     index += 1;
   }
 
-  if (cellWidth(text) <= width) {
-    return renderChunks(chunks);
-  }
-
-  return renderPlainAnsiLines(chunks.map((chunk) => chunk.text).join(""), width)[0] ?? "";
+  return renderWrappedChunks(chunks, width);
 }
 
 function parseInlineAnsi(input: string): AnsiToken[] {
@@ -293,4 +289,32 @@ function renderChunks(chunks: RenderChunk[]): string {
       chunk.role ? `<span class="ansi ansi-${chunk.role}">${textHtml(chunk.text)}</span>` : textHtml(chunk.text)
     )
     .join("");
+}
+
+function renderWrappedChunks(chunks: RenderChunk[], width: number): string[] {
+  const output: string[] = [];
+  let lineChunks: RenderChunk[] = [];
+  let lineWidth = 0;
+
+  for (const chunk of chunks) {
+    for (const char of chunk.text) {
+      const charWidth = cellWidth(char);
+
+      if (lineWidth + charWidth > width && lineWidth > 0) {
+        flushLine();
+      }
+
+      appendChunk(lineChunks, { text: char, role: chunk.role });
+      lineWidth += charWidth;
+    }
+  }
+
+  flushLine();
+  return output;
+
+  function flushLine(): void {
+    output.push(renderChunks(lineChunks));
+    lineChunks = [];
+    lineWidth = 0;
+  }
 }

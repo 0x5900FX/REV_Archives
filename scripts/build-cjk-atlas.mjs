@@ -1,37 +1,22 @@
 import { execFileSync } from "node:child_process";
-import { accessSync, constants, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { findCommand, pythonFromPyftsubset, uvEnv } from "./lib/fonttools.mjs";
 
 const root = path.resolve(fileURLToPath(new URL("..", import.meta.url)));
-const pyftsubset = findCommand("pyftsubset");
-const python = pythonFromShebang(pyftsubset);
 const script = path.join(root, "scripts/build-cjk-atlas.py");
+const pyftsubset = findCommand("pyftsubset", { required: false });
+const uv = findCommand("uv", { required: false });
 
-execFileSync(python, [script], { cwd: root, stdio: "inherit" });
-
-function findCommand(command) {
-  for (const directory of (process.env.PATH ?? "").split(path.delimiter)) {
-    const candidate = path.join(directory, command);
-
-    try {
-      accessSync(candidate, constants.X_OK);
-      return candidate;
-    } catch {
-      // Keep searching PATH.
-    }
-  }
-
-  throw new Error(`Missing ${command}; install fonttools first.`);
-}
-
-function pythonFromShebang(commandPath) {
-  const firstLine = readFileSync(commandPath, "utf8").split("\n")[0] ?? "";
-  const match = firstLine.match(/^#!(.+)$/);
-
-  if (!match) {
-    throw new Error(`Cannot read Python interpreter from ${commandPath}`);
-  }
-
-  return match[1].trim();
+if (pyftsubset) {
+  const python = pythonFromPyftsubset(pyftsubset);
+  execFileSync(python, [script], { cwd: root, stdio: "inherit" });
+} else if (uv) {
+  execFileSync(uv, ["run", "--script", script], {
+    cwd: root,
+    env: uvEnv,
+    stdio: "inherit"
+  });
+} else {
+  throw new Error("Missing fonttools. Install pyftsubset, or install uv.");
 }

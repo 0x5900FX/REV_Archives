@@ -16,6 +16,8 @@ node_modules/.vite/
 .cache/
 .turbo/
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 
 # logs
 *.log
