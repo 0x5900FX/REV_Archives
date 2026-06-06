@@ -25,7 +25,7 @@ export type SiteConfig = {
 };
 
 export const siteConfig: SiteConfig = {
-  name: "Entropic",
+  name: "Rev-Archives by 0x5900FX",
   description: "Security Research Philes",
   homeAsciiArt: `
 ▓█████▄ ▓█████ ▄▄▄      ▓█████▄  ▄▄▄▄   ▓█████ ▄▄▄     ▄▄▄█████▓   ▒███████▒▓█████  ██▓███   ██░ ██▓██   ██▓ ██▀███  
