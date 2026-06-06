@@ -1,0 +1,481 @@
+---
+title: "Arithmetic: Add & Sub"
+date: 2026-05-05
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+
+
+
+`MOV command`
+Copy data from one register to another register.
+
+```
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+ 
+ mov rax , 10   /stores 0xa into rax 
+ mov rbx , rax  
+ mov rcx , 0x1000  /stores 0x1000 into rcx
+  
+ 
+ ```
+
+ Be careful with `rsp` and  `rbp` , `rip`. `rip` cannot be modified. SO try to avoid storing data.  
+
+```
+00401000	_start:
+00401000	48 c7c00a000000	mov rax, 10
+00401007	48 89c3	mov rbx, rax
+0040100a	48 c7c100100000	mov rcx, 0x1000
+00401011	0000	add [rax], al
+```
+
+Imagine this is a memory address of our program. 
+```
+
+what would `mov rdx , [0x401000]` do?
+It says mov the data stored at address [0x401000] into rdx  which is  `48 c7c00a000000` 
+
+Register state after execution
+
+rax : 0x0a
+rbx : 0x0a
+rcx : 0x1000
+rdx : 0x480000000ac0c748 /We got extra value as it's 8 bytes wide. it's data is reversed based on endianess.
+rsp : 0x4ffffffffed0
+rbp : 0x00
+
+
+```
+
+---
+
+
+
+Learning to add in Asm
+
+
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+ 
+mov rax , 2  
+add rax , 4   # rax is 6 
+
+mov rbx , 4 	# rbx is 4
+add rax , rbx 	# rax is 0x0a
+
+
+Register value
+
+rax : 0x0a
+
+rbx : 0x04
+
+rcx : 0x00
+
+rdx : 0x4ffffffffff7
+
+rsp : 0x4ffffffffed0
+
+rbp : 0x00
+
+```
+
+---
+
+## Learning to subtract in `asm`
+
+```
+
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+ 
+mov rax , 2
+add rax , 4  
+
+mov rbx , 4
+add rax , rbx
+
+sub rax , 7 # sub 7 from rax
+sub rax , 1 # sub 1 from rax
+
+
+Registers
+
+rax : 0x02
+
+rbx : 0x04
+
+rcx : 0x00
+
+rdx : 0x4ffffffffff7
+
+rsp : 0x4ffffffffed0
+
+```
+
+
+---
+---
+
+
+```
+mov rax , 10 
+mov rbx , 5
+sub rax , rbx  #sub rbx from rax and store in rax.
+
+Registers
+
+rax : 0x05
+
+rbx : 0x05
+
+rcx : 0x00
+
+rdx : 0x4ffffffffff7
+
+```
+
+
+`inc / dec `
+
+```
+_start:
+
+mov rax , 9 
+inc rax   #inc rom 9 to a -> 10
+mov rbx , 9
+inc rbx  #inc rom 9 to a -> 10
+
+Registers
+
+rax : 0x0a
+
+rbx : 0x0a
+
+rcx : 0x00
+
+```
+
+
+## Some Exercies 
+`Getting the fibonacci numbers from the lession till now`.
+with only i immidiate value load
+
+
+
+```
+
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+#;! 0,1,2,3,5,8,13,21,34,55,89 
+mov rax ,0
+mov rbx  , rax 
+
+
+
+add rbx , rax 
+inc rbx 
+
+mov rcx ,rbx  
+mov rbp , rcx 
+add rbp , rcx 
+
+mov rsi , rbp
+add rsi , rcx
+
+mov rdi , rsi
+add rdi , rbp
+
+mov r8, rdi
+add r8, rsi
+
+mov r9, r8
+add r9, rdi
+
+mov r10 , r9
+add r10 , r8
+
+mov r11 , r10
+add r11 , r9
+
+mov r12 , r11 
+add r12 , r10
+
+
+Registers
+
+rax : 0x00
+
+rbx : 0x01
+
+rcx : 0x01
+
+rdx : 0x4ffffffffff7
+
+rsp : 0x4ffffffffed0
+
+rbp : 0x02
+
+rsi : 0x03
+
+rdi : 0x05
+
+r8  : 0x08
+
+r9  : 0x0d
+
+r10 : 0x15
+
+r11 : 0x22
+
+r12 : 0x59
+
+r13 : 0x90
+
+r14 : 0x00
+
+r15 : 0x00
+
+rip : 0x40104f
+
+
+```
+
+
+## Using memory in Assembly
+
+.data segment determine the actual data we can define in ram.
+rnew16 is a reference to a memory location to store somed data 
+
+rnew14: we need to determine how much data to store. 
+8bit 1 byte
+16bit 2 byte -> WORD
+32bit 4byte -> DOUBLE WORD (2WORD)
+64bit 8byte -> 	QUAD WORD (4WORD)
+
+LEA [load effective address]
+used to store address of a data
+LEA somedata_holder
+
+
+
+```
+.intel_syntax noprefix
+.global _start
+
+.text
+
+_start:
+
+mov rax, [rnew16]
+lea rbx, [rnew16]
+
+
+.data
+rnew16:  .quad 0xaaaaaaaaaaaaaabb 
+
+rax : 0xaaaaaaaaaaaaaabb 
+rbx : 0x402000 `#address of rnew16`
+
+rcx : 0x00
+```
+
+1 hex digit = 4 bits
+2 hex digits = 8 bits = 1 byte
+
+So:
+
+16 hex digits = 8 groups of 2 digits
+
+Example:
+
+12 34 56 78 9A BC DE F0
+
+Each group (12, 34, etc.) = 1 byte
+
+Count them:
+
+12 | 34 | 56 | 78 | 9A | BC | DE | F0
+ 1    2    3    4    5    6    7    8
+
+So:
+
+16 hex digits = 8 bytes
+ 
+ 
+rax register : 8byte -register
+eax register : 4byte -register subset of rax 
+ax register : 2byte register subset of eax 
+al \ ah " : 1 - 1byte register subset of ax  0xaaaaaaaaaaaa high-> [aa][bb] <	-low
+
+
+
+---
+
+## Challange 
+
+```
+Allocate the data and retrieve the data into registers and show em.
+/*
+0x402000: 13
+0x402001: d7
+0x402002: c0
+0x402003: ff
+0x402004: 02
+0x402005: 5a
+0x402006: 37
+0x402007: 00
+
+0x402008: 00
+0x402009: 55
+0x40200a: 93
+0x40200b: e1
+0x40200c: 6b
+0x40200d: ce
+0x40200e: cd
+0x40200f: a4
+
+0x402010: 8b
+0x402011: c2
+0x402012: 50
+0x402013: 8d
+0x402014: 25
+0x402015: c7
+0x402016: 1c
+0x402017: 08
+
+0x402018: 1a
+0x402019: 1a
+0x40201a: 1a
+*/
+```
+
+Solution 
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rsp , [b1]
+lea rax , [b1]
+mov rbx , [b1]
+add rax , 8
+mov rcx , [rax]
+add rax , 8
+mov r8 , [rax]
+add rax , 8
+mov r10d , [rax]
+
+
+.data
+b1: .quad 0x00375a02ffc0d713
+.quad 0x081cc7258d50c28b
+.quad 0xa4cdce6be1935500
+.byte 0x1a, 0x1a, 0x1a
+
+
+```
+
+```
+0000000000402000 13 d7 c0 ff 02 5a 37 00
+0000000000402008 8b c2 50 8d 25 c7 1c 08
+0000000000402010 00 55 93 e1 6b ce cd a4
+0000000000402018 f2 1a 1a
+
+
+Else 
+```
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rsp, [b1]
+
+
+.data
+b1: .quad 0x00375a02ffc0d713
+.quad 0x081cc7258d50c28b
+.quad 0xa4cdce6be1935500
+.long 0x1a1a1a
+
+0000000000402000 13 d7 c0 ff 02 5a 37 00
+0000000000402008 8b c2 50 8d 25 c7 1c 08
+0000000000402010 00 55 93 e1 6b ce cd a4
+0000000000402018 1a 1a 1a
+
+``` 
+
+
+## Another method
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rsp , [mem]
+lea rsi , [mem]
+
+mov rax , 0x00375a02ffc0d713
+mov [rsi] , rax
+add rsi , 8
+mov rax ,0xa4cdce6be1935500
+mov [rsi] , rax 
+add rsi , 8
+mov rax , 0x081cc7258d50c28b
+mov [rsi],rax
+add rsi , 8
+mov eax , 0x0a0a0a
+mov [rsi] , eax
+
+
+
+.data
+ 
+mem: .skip 1024 , 0xff
+
+```
+![register output](/images/reg_dataout.png)
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───
