@@ -1,0 +1,299 @@
+---
+title: "Formatted Output with Printf"
+date: 2026-05-03
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+## printf
+
+```
+#include <stdio.h>
+
+int main(){
+
+    char *c = "hello world\n";
+    printf(c);
+    printf("Hello world");
+    return 0
+}
+```
+
+We'll try to recreate this in assembly
+
+# x86_64 (64-bit) Syscall Table
+
+Compiled from Linux 5.4.0 headers.
+
+| NR | Syscall Name | References | `%rax` | arg0 (`%rdi`) | arg1 (`%rsi`) | arg2 (`%rdx`) | arg3 (`%r10`) | arg4 (`%r8`) | arg5 (`%r9`) |
+|----|---------------|------------|--------|----------------|----------------|----------------|----------------|---------------|---------------|
+| 0  | `read`  | `man/`, `cs/` | `0x00` | `unsigned int fd` | `char *buf` | `size_t count` | - | - | - |
+| 1  | `write` | `man/`, `cs/` | `0x01` | `unsigned int fd` | `const char *buf` | `size_t count` | - | - | - |
+| 2  | `open`  | `man/`, `cs/` | `0x02` | `const char *filename` | `int flags` | `umode_t mode` | - | - | - |
+| 3  | `close` | `man/`, `cs/` | `0x03` | `unsigned int fd` | - | - | - | - | - |
+
+Syscall manuals 
+
+
+### This version is more static but will make it dynamic with a lil change in it. Like passing the rdi with out own string .
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+call print
+call _exit
+
+_exit:
+mov rax , 60
+xor rdi , rdi
+syscall
+
+print:
+lea rdi , [s1]
+call str_func
+
+mov rdx , rax
+mov rax ,1  
+mov rdi , 1
+lea rsi, [s1]
+syscall
+ret
+
+str_func:
+mov rsi , rdi
+
+loop:
+mov bl , [rsi]
+cmp bl , 0
+je func_exit
+inc rsi
+inc rcx
+jmp loop
+
+func_exit:
+mov rax, rcx
+int3
+ret
+
+
+
+.data
+s1 : .asciz "Ahoy there!"
+
+```
+
+
+Here we made some changes like stattically deciding the string from s1 in every function call 
+We change it to one call before function we can make it to which data to print
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+
+lea rdi , [s2]
+call print
+
+lea rdi , [s1]
+call print
+
+call _exit
+
+_exit:
+mov rax , 60
+xor rdi , rdi
+syscall
+
+print:
+call str_func
+
+mov rdx , rax
+mov rsi , rdi
+
+mov rax ,1  
+mov rdi , 1
+syscall
+ret
+
+str_func:
+mov rsi , rdi
+
+loop:
+mov bl , [rsi]
+cmp bl , 0
+je func_exit
+inc rsi
+inc rcx
+jmp loop
+
+func_exit:
+mov rax, rcx
+int3
+ret
+
+
+
+.data
+s1 : .asciz "Ahoy there!"
+s2 : .asciz "fuckiff there"
+```
+The major downside to this without checking other register is that the counter function is just going on withour being reset so it just goes on 
+while printing the result
+
+```
+$ /linker /program.o -o /program
+
+$ /program
+fuckiff there
+Ahoy there!
+fuckiff there
+```
+
+So to counter this we can adjus the following 
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+
+lea rdi , [s2]
+call print
+
+lea rdi , [s1]
+call print
+call _exit
+
+_exit:
+mov rax , 60
+xor rdi , rdi
+syscall
+
+print:
+call str_func
+
+mov rdx , rax
+mov rsi , rdi
+
+mov rax ,1  
+mov rdi , 1
+syscall
+int3
+ret
+
+str_func:
+xor rcx , rcx  ;# resetting the counter for string length fucntion i.e rcx register
+mov rsi , rdi
+
+loop:
+mov bl , [rsi]
+cmp bl , 0
+je func_exit
+inc rsi
+inc rcx
+jmp loop
+
+func_exit:
+mov rax, rcx
+ret
+
+
+
+.data
+s1 : .asciz "Ahoy there!\n"
+s2 : .asciz "fuckiff there\n"
+```
+
+
+Another issue will be the value for rdi..
+
+in `call str_func`
+we have `lea rdi , [s1]` before it storing the value in rdi
+
+but in somepoint of that function there can be change in value of registers that should be done manually..
+
+thus we come up with sol'n pusing `rdi` into stack.
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+
+lea rdi , [s2]
+call print
+
+lea rdi , [s1]
+call print
+call _exit
+
+_exit:
+mov rax , 60
+xor rdi , rdi
+syscall
+
+print:
+push rdi
+call str_func  ;# here even if the fucntion change the value of rdi then also it'll work as it's saved in stack
+pop rdi
+
+mov rdx , rax
+mov rsi , rdi
+
+mov rax ,1  
+mov rdi , 1
+syscall
+int3
+ret
+
+str_func:
+xor rcx , rcx
+mov rsi , rdi
+
+loop:
+mov bl , [rsi]
+cmp bl , 0
+je func_exit
+inc rsi
+inc rcx
+jmp loop
+
+func_exit:
+mov rax, rcx
+ret
+
+
+
+.data
+s1 : .asciz "Ahoy there!\n"
+s2 : .asciz "fuckiff there\n"
+```
+
+
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───

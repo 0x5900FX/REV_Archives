@@ -28,10 +28,10 @@ export const volumeConfigs = new Map<number, VolumeConfig>([
   [
     0,
     {
-      title: "Security Research",
-      listLabel: "Volume 0 - Security Research",
+      title: "Security909",
+      listLabel: "Volume 0 - Diving into Assembly",
       phileSort: {
-        by: "order",
+        by: "date",
         direction: "asc"
       },
       postscript: [
@@ -46,8 +46,8 @@ export const volumeConfigs = new Map<number, VolumeConfig>([
   [
     1,
     {
-      title: "Historical Philes",
-      listLabel: "Volume 1 - Historical Philes",
+      title: "Execution Philes",
+      listLabel: "Volume 1 - Write-ups",
       postscript: [
         "  ──[ EOF ]──────────────────────────────────────────────────────────────────//───",
         "",

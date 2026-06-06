@@ -1,0 +1,349 @@
+---
+title: "x86 Architecture Fundamentals"
+date: 2026-05-01
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+# x86-64 Architecture Guide
+
+## Reference
+
+This handout covers only a small subset of the x86-64 instruction set and architecture. For a more complete (but still readable) introduction, consult:
+
+**The AMD64 Architecture Programmer’s Manual, Volume 1: Application Programming**
+
+---
+
+# Registers
+
+In the assembly syntax accepted by `gcc`, register names are always prefixed with `%`.
+
+All registers listed below are **64 bits wide**.
+
+## Register File
+
+| Register      | Purpose              | Saved Across Calls |
+|---------------|----------------------|-------------------|
+| `%rax`        | Temporary register; return value | No |
+| `%rbx`        | Callee-saved | Yes |
+| `%rcx`        | 4th function argument | No |
+| `%rdx`        | 3rd function argument | No |
+| `%rsp`        | Stack pointer | Yes |
+| `%rbp`        | Base pointer; callee-saved | Yes |
+| `%rsi`        | 2nd function argument | No |
+| `%rdi`        | 1st function argument | No |
+| `%r8`         | 5th function argument | No |
+| `%r9`         | 6th function argument | No |
+| `%r10`–`%r11` | Temporary registers | No |
+| `%r12`–`%r15` | Callee-saved registers | Yes |
+
+> **Project Note:**  
+> For code generation, you will not perform register allocation. Use `%r10` and `%r11` for temporary values loaded from the stack.
+
+---
+
+# Instruction Set
+
+Each mnemonic opcode represents a family of instructions.
+
+Instruction variants differ by:
+
+- Operand types (register, immediate value, memory address)
+- Operand sizes (byte, word, double-word, quad-word)
+
+Operand size is indicated by an optional suffix:
+
+| Suffix | Size |
+|---------|------|
+| `b` | 8-bit (byte) |
+| `w` | 16-bit (word) |
+| `l` | 32-bit (double-word) |
+| `q` | 64-bit (quad-word) |
+
+## Example
+
+```asm
+movq $3, %rax
+```
+
+Sets the 64-bit register `%rax` to `3`.
+
+### Notes
+
+- Immediate operands are prefixed with `$`.
+- Unprefixed operands are treated as memory addresses.
+- For instructions that modify an operand, the modified operand appears **second**.
+
+---
+
+# Instruction Reference
+
+## Copying Values
+
+| Instruction | Description |
+|------------|-------------|
+| `mov src, dest` | Copy a value from source to destination. |
+| `cmove %src, %dest` | Copy if equal. |
+| `cmovne %src, %dest` | Copy if not equal. |
+| `cmovg %src, %dest` | Copy if greater. |
+| `cmovl %src, %dest` | Copy if less. |
+| `cmovge %src, %dest` | Copy if greater or equal. |
+| `cmovle %src, %dest` | Copy if less or equal. |
+
+---
+
+## Stack Management
+
+| Instruction | Description |
+|------------|-------------|
+| `enter $x, $0` | Create a stack frame and allocate `x` bytes for local variables. |
+| `leave` | Restore `%rsp` and `%rbp`, removing local variables. |
+| `push src` | Push source value onto the stack. |
+| `pop dest` | Pop top stack value into destination. |
+
+---
+
+## Control Flow
+
+| Instruction | Description |
+|------------|-------------|
+| `call target` | Jump to target and push return address onto stack. |
+| `ret` | Return to caller by popping return address. |
+| `jmp target` | Unconditional jump. |
+| `je target` | Jump if equal. |
+| `jne target` | Jump if not equal. |
+
+---
+
+## Arithmetic and Logic
+
+| Instruction | Description |
+|------------|-------------|
+| `add src, dest` | Add source to destination. |
+| `sub src, dest` | Subtract source from destination. |
+| `imul src, dest` | Multiply destination by source. |
+| `idiv divisor` | Divide `%rdx:%rax` by divisor. Quotient → `%rax`, remainder → `%rdx`. |
+| `shr reg` | Shift right by value in `%cl`. |
+| `shl reg` | Shift left by value in `%cl`. |
+| `ror src, dest` | Rotate destination right by source bits. |
+| `cmp src, dest` | Compare operands and set condition flags. |
+
+---
+
+# Stack Organization
+
+Global and local variables are stored on the stack.
+
+Each procedure call creates a **stack frame** used to store:
+
+- Local variables
+- Temporary values
+- Saved registers
+
+The stack is typically addressed relative to `%rbp` and `%rsp`.
+
+## Stack Layout
+
+| Position | Contents | Frame |
+|-----------|-----------|--------|
+| `8n + 16(%rbp)` | Argument `n` | Previous |
+| `...` | ... | ... |
+| `16(%rbp)` | Argument 7 | Previous |
+| `8(%rbp)` | Return address | Current |
+| `0(%rbp)` | Previous `%rbp` value | Current |
+| `-8(%rbp)` | Locals and temporaries | Current |
+| `...` | ... | Current |
+| `0(%rsp)` | Top of stack | Current |
+
+---
+
+# Calling Convention
+
+We use the standard **System V AMD64 ABI** (Linux x86-64 calling convention).
+
+## Passing Function Arguments
+
+The first six arguments are passed in registers:
+
+| Argument | Register |
+|-----------|-----------|
+| 1 | `%rdi` |
+| 2 | `%rsi` |
+| 3 | `%rdx` |
+| 4 | `%rcx` |
+| 5 | `%r8` |
+| 6 | `%r9` |
+
+Additional arguments are passed on the stack in reverse order.
+
+---
+
+## Register Ownership
+
+### Caller-Saved Registers
+
+The caller must assume these may be modified:
+
+```text
+%rax
+%rcx
+%rdx
+%rsi
+%rdi
+%r8
+%r9
+%r10
+%r11
+```
+
+### Callee-Saved Registers
+
+The callee must preserve:
+
+```text
+%rbp
+%rbx
+%r12
+%r13
+%r14
+%r15
+```
+
+---
+
+## Return Values
+
+A function returns its value in:
+
+```text
+%rax
+```
+
+The callee is responsible for:
+
+- Cleaning up local variables
+- Restoring saved registers
+- Returning control to the caller
+
+The following instructions simplify this process:
+
+```asm
+call
+enter
+leave
+ret
+```
+
+---
+
+# Calling External C Functions
+
+Because we follow the standard Linux ABI, assembly code can call C library functions.
+
+For this project, only the following callouts are used:
+
+- `printf`
+- `get_int_035`
+
+---
+
+## Calling `printf`
+
+Before calling `printf`, `%rax` **must be set to 0**.
+
+Example:
+
+```asm
+movq $0, %rax
+call printf
+```
+
+### Why?
+
+`printf` accepts a variable number of arguments.
+
+Under the System V ABI:
+
+```text
+%rax = number of SSE registers used for arguments
+```
+
+For our purposes:
+
+```text
+%rax = 0
+```
+
+---
+
+## Using `get_int_035()`
+
+`get_int_035()`:
+
+- Reads a single integer from standard input.
+- Returns the integer value in `%rax`.
+
+We use this instead of `scanf()` because:
+
+```text
+scanf() returns the number of successfully read items,
+not the input value itself.
+```
+
+---
+
+# Summary
+
+## Argument Registers
+
+| Arg | Register |
+|------|----------|
+| 1 | `%rdi` |
+| 2 | `%rsi` |
+| 3 | `%rdx` |
+| 4 | `%rcx` |
+| 5 | `%r8` |
+| 6 | `%r9` |
+
+## Return Register
+
+```text
+%rax
+```
+
+## Temporary Registers
+
+```text
+%r10
+%r11
+```
+
+## Callee-Saved Registers
+
+```text
+%rbx
+%rbp
+%r12
+%r13
+%r14
+%r15
+```
+
+## Stack Frame Basics
+
+```text
+Higher Addresses
+│
+│  Arguments (> 6)
+│  Return Address
+│  Old %rbp
+│  Local Variables
+│
+└── %rsp (Top of Stack)
+Lower Addresses
+```
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───

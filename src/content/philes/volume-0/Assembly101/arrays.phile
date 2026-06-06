@@ -1,0 +1,103 @@
+---
+title: "Arrays in Assembly"
+date: 2026-05-7
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+Working with arrays in assembly requires you to manage memory addresses and data sizes manually. Unlike higher-level languages, you have to explicitly tell the CPU how many bytes to write and how far to move the pointer. Here are a few ways to handle array data in x86_64 Assembly using the GNU Assembler (GAS).
+
+
+
+Storing array data in buffer
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rsp, [buff]
+lea rsi, [buff]
+mov eax , 1
+
+loop:
+mov [rsi] , al
+inc al
+add rsi , 1
+int3
+jmp loop
+
+.data 
+buff: .skip 4096
+```
+
+
+
+Challenge
+
+
+Use 4byte register to create an array
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rsp, [buff]
+lea rsi, [buff]
+mov eax , 1
+
+loop:
+mov [rsi] , eax
+inc eax
+add rsi , 4
+int3
+jmp loop
+
+.data 
+buff: .skip 4096
+```
+
+
+
+Reading in string
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rsp , [datax]
+lea rsi , [datax]
+
+
+lea rdi , [rsi + 50]
+mov [rdi] , rsi
+add rdi , 8
+lea rsi , [data2]
+mov [rdi] , rsi
+
+.data 
+datax: .asciz "hello world" , "fuck of" 
+data2: .asciz "teteo"
+
+```
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───

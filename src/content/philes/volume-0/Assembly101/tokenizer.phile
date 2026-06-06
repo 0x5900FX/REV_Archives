@@ -1,0 +1,540 @@
+---
+title: "Building a tokenizer in Assembly"
+date: 2026-05-8
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+
+## What is tokenizer?
+
+A tokenizer receives a stream of characters, breaks it up into individual tokens (usually individual words), and outputs a stream of tokens. For instance, a whitespace tokenizer breaks text into tokens whenever it sees any whitespace. It would convert the text "Quick brown fox!" into the terms [Quick, brown, fox!].
+
+The tokenizer is also responsible for recording the following:
+
+Order or position of each term (used for phrase and word proximity queries)
+Start and end character offsets of the original word which the term represents (used for highlighting search snippets).
+Token type, a classification of each term produced, such as <ALPHANUM>, <HANGUL>, or <NUM>. Simpler analyzers only produce the word token type.
+
+For our purposes, we are going to build a simple whitespace tokenizer. Let's see how we can implement this in x86-64 Assembly.
+
+
+
+
+### Tokenizer Code in Asm
+
+This GNU Assembler (GAS) program written in x86-64 Intel syntax acts as a basic string tokenizer (similar to a simple shell). It reads a string from standard input, splits it into tokens separated by spaces, and prints each token on a new line.
+
+
+
+```
+
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+
+lea rdi , [buf]
+lea rsi , [bufsize - 1]
+call readline
+
+cmp rax , 0
+je nodata
+
+lea rdi , [buf]
+mov byte ptr [rdi + rax] , 0
+
+call memviewer
+
+lea rdi , [buf]
+lea rsi , [tokens]
+call tokenize
+
+int3
+lea rdi , [tokens]
+mov rdi , [rdi]
+call _print
+call print_token
+
+call memviewer 
+call _exit
+
+_exit:
+        mov rax , 60
+        xor rdi, rdi
+        syscall
+
+readline:
+        mov rdx, rsi
+        mov rsi, rdi
+        mov rax, 0
+        mov rdi, 0
+        syscall
+        ret
+
+nodata:
+      lea rdi , [nodatax]
+      call _print
+      call _exit
+
+_print:
+        push rdi
+        call slen
+        pop rsi
+        mov rdx, rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+        ret
+      
+_println:
+        push rdi
+        call slen
+        pop rsi
+        mov rdx, rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+                
+        
+        mov rax, 1
+        mov rdi, 1
+        lea rsi , [newline]
+        mov rdx , 1
+        syscall
+        ret
+      
+
+slen:
+    xor rcx, rcx
+ .loop:
+    cmp byte ptr [rdi + rcx], 0
+    je .done
+    inc rcx
+    jmp .loop
+ .done:
+    mov rax, rcx
+    ret
+
+memviewer:
+mov r14 , rsp
+lea rsp , [buf] 
+mov rsp , r14
+ret
+
+print_token:
+lea r15 , [tokens]
+
+pt.loop:
+    mov rdi , [r15]
+   cmp rdi , 0
+   je pt.end
+
+call _println
+add r15 , 8
+jmp pt.loop
+
+pt.end:
+ret 
+
+tokenize:
+ mov r15 , rsi 
+
+ tokenize.loop:
+ call skipwhite
+ cmp byte ptr [rdi] , 0x0
+ je nodata 
+
+ mov [r15] , rdi
+ add r15 , 8
+
+call memviewer
+call findend
+
+cmp byte ptr [rdi] , 0
+je tokenize.end
+
+
+mov byte ptr [rdi] , 0
+inc rdi
+
+call memviewer
+jmp tokenize.loop
+
+tokenize.end:
+ret
+
+findend:
+cmp byte ptr [rdi] , ' '
+je findend.ret
+
+cmp byte ptr [rdi] , 0
+je findend.ret
+
+inc rdi
+jmp findend
+
+ findend.ret:
+  ret
+
+skipwhite:
+cmp byte ptr [rdi] , ' '
+je skipwhite.adv
+
+ret
+
+skipwhite.adv:
+inc rdi
+jmp skipwhite
+
+
+.data
+buf: .skip 2048 , 0xff
+bufsize = . - buf
+tokens: .skip 2048
+newline: .byte '\n'
+nodatax: .asciz "\n no data entered \n"
+
+```
+
+## Algorithm for its implementation
+```
+                           [ START: _start ]
+                                   |
+                                   v
+                     [ Call readline(buf, bufsize) ]
+                                   |
+                     +-------------+-------------+
+                     |                           |
+                   rax == 0                    rax > 0
+                     |                           |
+                     v                           v
+            [ Call nodata ]           [ Null-terminate buf ]
+            [ Print Error ]                      |
+            [ Call _exit ]                       v
+                                  [ Call tokenize(buf, tokens) ]
+                                               |
+              +--------------------------------+--------------------------------+
+              |                                |                                |
+              v                                v                                v
+    [ Call skipwhite ]               [ Store ptr in tokens ]           [ Call findend ]
+    (Skip leading spaces)            (Save start of word)              (Find space/null)
+              |                                |                                |
+              +--------------------------------+--------------------------------+
+                                               |
+                                     [ Space found? ]----Yes---+
+                                               |                |
+                                               No               v
+                                               |        [ Replace space w/ \0 ]
+                                               v                |
+                                        [ End of String? ]<------+
+                                               |          
+                                         No----+----Yes
+                                         |           |
+                                         v           v
+                                 [ Loop tokenize ]  [ Return to _start ]
+                                                           |
+                                                           v
+                                               [ Print First Token ]
+                                                           |
+                                                           v
+                                              [ Call print_token ]
+                                              (Loop through tokens array)
+                                                           |
+                                                           v
+                                                  [ Call _exit ]
+
+```
+
+
+## Function's info
+
+```
+_start: Sets up the buffer and calls readline. If readline returns 0 bytes read, it jumps to nodata. Otherwise, it manually null-terminates the input string at buf[rax]. It then calls tokenize to split the string, hits an int3 breakpoint (likely for debugger inspection), prints the first token, prints all remaining tokens, and exits.
+
+readline: Translates the C-like read(0, buf, bufsize-1) into a Linux syscall.
+
+_print / _println: Both use slen to find the string length, then use syscall 1 (sys_write) to file descriptor 1 (stdout). 
+
+_println makes a second syscall to write a \n character.
+
+slen: A standard string length loop. It increments rcx until it hits a 0x0 byte, then returns the count in rax.
+memviewer: Currently a buggy or placeholder function. It saves the stack pointer to r14, overwrites the stack pointer with the address of buf, and immediately restores it from r14. It effectively does nothing but waste cycles.
+
+tokenize: The core logic. It uses skipwhite to skip leading spaces, then stores the current address in the tokens array. It uses findend to find the end of the word. If the string hasn't ended, it replaces the space with a null byte (0x0) to isolate the token, moves to the next character, and repeats.
+
+findend / skipwhite: Simple traversal loops. findend stops at ' ' or 0x0. skipwhite stops at anything that isn't ' '
+
+```
+
+
+| Function | Description |
+| :--- | :--- |
+| `_start` | Entry point. Orchestrates input reading, null-terminating, tokenizing, and printing. |
+| `_exit` | Exits the program using syscall 60 with code 0. |
+| `readline` | Reads user input from stdin (syscall 0) into the buffer. |
+| `nodata` | Prints an error message if no input is provided and exits. |
+| `_print` | Prints a null-terminated string to stdout. |
+| `_println` | Prints a null-terminated string to stdout followed by a newline. |
+| `slen` | Calculates the length of a null-terminated string. |
+| `memviewer` | *Stub/Debug function.* Currently does nothing useful (swaps stack pointer and reverts it). |
+| `print_token` | Iterates through the `tokens` array and prints each token using `_println`. |
+| `tokenize` | Parses the input buffer, replacing spaces with null bytes, and stores pointers to words in `tokens`. |
+| `findend` | Traverses a string until it finds a space or a null byte. |
+| `skipwhite` | Traverses a string, skipping over consecutive space characters. |
+
+
+
+Comparing the string
+
+//#; will be tranferring this content to another post.
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rdi , [s1]
+lea rsi , [s2]
+call strcmp
+int3
+
+cmp al , 0
+je match
+jne nomatch
+call exit
+
+
+
+
+
+exit:
+mov rax , 60
+xor rdi , rdi
+syscall
+
+match:
+lea rdi , [s_match]
+call _print
+call exit
+
+nomatch:
+lea rdi , [s_no_match]
+call _print
+call exit
+
+strcmp:
+mov al , [rdi]
+mov dl , [rsi]
+cmp al , dl
+
+jne sc.done
+
+cmp al , 0
+je sc.done
+
+inc rdi
+inc rsi
+jmp strcmp
+
+sc.done:
+sub al , dl
+int3
+ret
+
+_print:
+        push rdi
+        call slen
+        pop rsi
+        mov rdx, rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+        ret
+      
+_println:
+        push rdi
+        call slen
+        pop rsi
+        mov rdx, rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+                
+        
+        mov rax, 1
+        mov rdi, 1
+        lea rsi , [newline]
+        mov rdx , 1
+        syscall
+        ret
+      
+
+slen:
+    xor rcx, rcx
+ .loop:
+    cmp byte ptr [rdi + rcx], 0
+    je .done
+    inc rcx
+    jmp .loop
+ .done:
+    mov rax, rcx
+    ret
+
+.data
+s1: .asciz "heello"
+s2: .asciz "heello"
+newline: .byte '\n'
+s_match: .asciz "It's a match for string \n"
+s_no_match: .asciz "It's not a match for string \n"
+
+
+```
+
+Challange : Check only a n number of strings.
+
+```
+;#---------------------
+;#  GNU Assembler file
+;#  Syscall Hello World
+;#---------------------
+.intel_syntax noprefix
+.global _start
+.text
+_start:
+
+lea rdi , [s1]
+lea rsi , [s2]
+mov rdx , 14
+call n_strcmp
+int3
+
+cmp al , 0
+je match
+jne nomatch
+call exit
+
+
+
+
+
+exit:
+mov rax , 60
+xor rdi , rdi
+syscall
+
+match:
+lea rdi , [s_match]
+call _print
+call exit
+
+nomatch:
+lea rdi , [s_no_match]
+call _print
+call exit
+
+strcmp:
+mov al , [rdi]
+mov dl , [rsi]
+cmp al , dl
+
+jne sc.done
+
+cmp al , 0
+je sc.done
+
+inc rdi
+inc rsi
+jmp strcmp
+
+sc.done:
+sub al , dl
+int3
+ret
+
+
+n_strcmp:
+
+mov rcx , rdx
+snc.loop:
+dec rcx
+
+mov al , [rdi]
+mov dl , [rsi]
+cmp al , dl
+
+jne snc.done
+
+cmp al , 0
+je snc.done
+
+cmp rcx , 0
+je snc.done
+
+inc rdi
+inc rsi
+jmp snc.loop
+
+snc.done:
+sub al , dl
+int3
+ret
+
+_print:
+        push rdi
+        call slen
+        pop rsi
+        mov rdx, rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+        ret
+      
+_println:
+        push rdi
+        call slen
+        pop rsi
+        mov rdx, rax
+        mov rax, 1
+        mov rdi, 1
+        syscall
+                
+        
+        mov rax, 1
+        mov rdi, 1
+        lea rsi , [newline]
+        mov rdx , 1
+        syscall
+        ret
+      
+
+slen:
+    xor rcx, rcx
+ .loop:
+    cmp byte ptr [rdi + rcx], 0
+    je .done
+    inc rcx
+    jmp .loop
+ .done:
+    mov rax, rcx
+    ret
+
+.data
+s1: .asciz "what's up bebo"
+s2: .asciz "what's up baby"
+newline: .byte '\n'
+s_match: .asciz "It's a match for string \n"
+s_no_match: .asciz "It's not a match for string \n"
+
+```
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───

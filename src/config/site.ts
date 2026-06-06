@@ -27,16 +27,21 @@ export type SiteConfig = {
 export const siteConfig: SiteConfig = {
   name: "Entropic",
   description: "Security Research Philes",
-  homeAsciiArt: `▓█████  ███▄    █ ▄▄▄█████▓ ██▀███   ▒█████   ██▓███   ██▓ ▄████▄
-▓█   ▀  ██ ▀█   █ ▓  ██▒ ▓▒▓██ ▒ ██▒▒██▒  ██▒▓██░  ██▒▓██▒▒██▀ ▀█
-▒███   ▓██  ▀█ ██▒▒ ▓██░ ▒░▓██ ░▄█ ▒▒██░  ██▒▓██░ ██▓▒▒██▒▒▓█    ▄
-▒▓█  ▄ ▓██▒  ▐▌██▒░ ▓██▓ ░ ▒██▀▀█▄  ▒██   ██░▒██▄█▓▒ ▒░██░▒▓▓▄ ▄██▒
-░▒████▒▒██░   ▓██░  ▒██▒ ░ ░██▓ ▒██▒░ ████▓▒░▒██▒ ░  ░░██░▒ ▓███▀ ░
-░░ ▒░ ░░ ▒░   ▒ ▒   ▒ ░░   ░ ▒▓ ░▒▓░░ ▒░▒░▒░ ▒▓▒░ ░  ░░▓  ░ ░▒ ▒  ░
- ░ ░  ░░ ░░   ░ ▒░    ░      ░▒ ░ ▒░  ░ ▒ ▒░ ░▒ ░      ▒ ░  ░  ▒
-   ░      ░   ░ ░   ░        ░░   ░ ░ ░ ░ ▒  ░░        ▒ ░░
-   ░  ░         ░             ░         ░ ░            ░  ░ ░
-                                                        ░`,
+  homeAsciiArt: 
+`
+▓█████▄ ▓█████ ▄▄▄      ▓█████▄  ▄▄▄▄   ▓█████ ▄▄▄     ▄▄▄█████▓   ▒███████▒▓█████  ██▓███   ██░ ██▓██   ██▓ ██▀███  
+▒██▀ ██▌▓█   ▀▒████▄    ▒██▀ ██▌▓█████▄ ▓█   ▀▒████▄   ▓  ██▒ ▓▒   ▒ ▒ ▒ ▄▀░▓█   ▀ ▓██░  ██▒▓██░ ██▒▒██  ██▒▓██ ▒ ██▒
+░██   █▌▒███  ▒██  ▀█▄  ░██   █▌▒██▒ ▄██▒███  ▒██  ▀█▄ ▒ ▓██░ ▒░   ░ ▒ ▄▀▒░ ▒███   ▓██░ ██▓▒▒██▀▀██░ ▒██ ██░▓██ ░▄█ ▒
+░▓█▄   ▌▒▓█  ▄░██▄▄▄▄██ ░▓█▄   ▌▒██░█▀  ▒▓█  ▄░██▄▄▄▄██░ ▓██▓ ░      ▄▀▒   ░▒▓█  ▄ ▒██▄█▓▒ ▒░▓█ ░██  ░ ▐██▓░▒██▀▀█▄  
+░▒████▓ ░▒████▒▓█   ▓██▒░▒████▓ ░▓█  ▀█▓░▒████▒▓█   ▓██▒ ▒██▒ ░    ▒███████▒░▒████▒▒██▒ ░  ░░▓█▒░██▓ ░ ██▒▓░░██▓ ▒██▒
+ ▒▒▓  ▒ ░░ ▒░ ░▒▒   ▓▒█░ ▒▒▓  ▒ ░▒▓███▀▒░░ ▒░ ░▒▒   ▓▒█░ ▒ ░░      ░▒▒ ▓░▒░▒░░ ▒░ ░▒▓▒░ ░  ░ ▒ ░░▒░▒  ██▒▒▒ ░ ▒▓ ░▒▓░
+ ░ ▒  ▒  ░ ░  ░ ▒   ▒▒ ░ ░ ▒  ▒ ▒░▒   ░  ░ ░  ░ ▒   ▒▒ ░   ░       ░░▒ ▒ ░ ▒ ░ ░  ░░▒ ░      ▒ ░▒░ ░▓██ ░▒░   ░▒ ░ ▒░
+ ░ ░  ░    ░    ░   ▒    ░ ░  ░  ░    ░    ░    ░   ▒    ░         ░ ░ ░ ░ ░   ░   ░░        ░  ░░ ░▒ ▒ ░░    ░░   ░ 
+   ░       ░  ░     ░  ░   ░     ░         ░  ░     ░  ░             ░ ░       ░  ░          ░  ░  ░░ ░        ░     
+ ░                       ░            ░                            ░                                ░ ░              
+`,
+
+
   homeSections: [
     {
       title: "TL;DR",
@@ -45,9 +50,9 @@ export const siteConfig: SiteConfig = {
           label: "Cybersecurity enthusiast. Idealist. Purist."
         },
         {
-          label: "Researcher @RaptX",
-          linkLabel: "@RaptX",
-          href: "https://raptx.org/",
+          label: "Researcher @0x5900FX",
+          linkLabel: "@0x5900FX",
+          href: "https://github.com/0x5900FX",
           external: true
         }
       ]
@@ -74,23 +79,23 @@ export const siteConfig: SiteConfig = {
         { label: "root -at- cubeyond -dot- net" },
         {
           label: "PGP Encryption Key",
-          href: "/key.asc"
+          href: ""
         },
         {
           label: "github@plt",
-          href: "https://github.com/CuB3y0nd/",
+          href: "https://github.com/0x5900FX/",
           external: true,
           prefix: "~ call"
         },
         {
           label: "memos@plt",
-          href: "https://memos.cubeyond.net/",
+          href: "",
           external: true,
           prefix: "~ call"
         },
         {
           label: "kofi@plt",
-          href: "https://ko-fi.com/cub3y0nd",
+          href: "",
           external: true,
           prefix: "~ call"
         }
