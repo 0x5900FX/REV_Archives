@@ -1,0 +1,46 @@
+---
+title: "toasterbirb's off_by_one (solved) " 
+date: 2026-01-01
+author: "DeaDBeat0x5900FX"
+lang: en
+order: 3
+---
+
+Author:
+toasterbirb
+
+Language:
+Assembler
+
+Upload:
+2025-07-05 12:56
+
+Platform:
+Unix/linux etc.
+
+Difficulty:
+2.0 Rate!
+
+Quality:
+4.0 Rate!
+
+Arch:
+x86-64
+
+Downloads:
+237
+
+Size:
+4.70 KB
+
+
+Running the file we get this as our initial output
+
+./off-by-one 
+Passphrase: testpass
+The given password is unfortunately incorrect
+
+
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───
