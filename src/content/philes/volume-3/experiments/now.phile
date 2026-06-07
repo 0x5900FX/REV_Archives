@@ -9,4 +9,45 @@ order: 4
 To be updated soon.
 
 
+Just some odd content on Terminal Multiplexing
+
+screen is a program that creates virtual terminals inside your terminal. It's somewhat like having multiple browser tabs, but for your command line!
+
+Can use Exit or ctrl-D to leave screen session .
+
+
+Detaching in screen
+
+Imagine you're working on something important over a remote connection, and your connection drops. With a normal terminal (outside of this awesome dojo environment), everything's gone. With screen, your work keeps running, and you can reattach later!
+
+
+We can use Ctrl-A, followed by d (for detach). This leaves your session running in the background while you return to your normal terminal.
+
+We can reattach the screen session using screen -r 
+
+hacker@terminal-multiplexing~launching-screen:~$ screen
+[detached from 156.pts-0.terminal-multiplexing~detaching-and-attaching]
+hacker@terminal-multiplexing~detaching-and-attaching:~$ screen -r
+[detached from 156.pts-0.terminal-multiplexing~detaching-and-attaching]
+hacker@terminal-multiplexing~detaching-and-attaching:~$ screen -r
+[screen is terminating]
+hacker@terminal-multiplexing~detaching-and-attaching:~$ screen
+[detached from 175.pts-0.terminal-multiplexing~detaching-and-attaching]
+
+
+There could be multiple session in work.
+
+Thus list them with 
+Well, we can list them:
+
+hacker@dojo:~$ screen -ls
+There are screens on:
+        23847.mysession   (Detached)
+        23851.goodwork    (Detached)
+        23855.morework    (Detached)
+3 Sockets in /run/screen/S-hacker.
+
+We can attactch to respective session using screen -r  xxxxx
+
+i.e screen -r mysession
 ──[ EOF ]──────────────────────────────────────────────────────────────────//───
