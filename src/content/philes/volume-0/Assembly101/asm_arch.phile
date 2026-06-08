@@ -346,4 +346,70 @@ Higher Addresses
 Lower Addresses
 ```
 
+
++----------------+------------------------------------+--------------------------------------------------------------+
+| Instruction    | C/Math Equivalent                  | Description                                                  |
++----------------+------------------------------------+--------------------------------------------------------------+
+| add rax,rbx    | rax = rax + rbx                   | Add rbx to rax                                               |
+| sub ebx,ecx    | ebx = ebx - ecx                   | Subtract ecx from ebx                                        |
+| imul rsi,rdi   | rsi = rsi * rdi                   | Multiply rsi by rdi, truncate result to 64 bits              |
+| inc rdx        | rdx = rdx + 1                     | Increment rdx                                                |
+| dec rdx        | rdx = rdx - 1                     | Decrement rdx                                                |
+| neg rax        | rax = 0 - rax                     | Negate rax numerically                                       |
+| not rax        | rax = ~rax                        | Negate (invert) every bit of rax                             |
+| and rax,rbx    | rax = rax & rbx                   | Bitwise AND between rax and rbx                              |
+| or rax,rbx     | rax = rax | rbx                   | Bitwise OR between rax and rbx                               |
+| xor rcx,rdx    | rcx = rcx ^ rdx                   | Bitwise XOR between rcx and rdx                              |
+| shl rax,10     | rax = rax << 10                   | Shift bits left by 10, fill right side with zeros            |
+| shr rax,10     | rax = rax >> 10                   | Shift bits right by 10, fill left side with zeros            |
+| sar rax,10     | rax = rax >> 10                   | Arithmetic right shift by 10 with sign extension             |
+| ror rax,10     | rax = (rax >> 10) | (rax << 54) | Rotate bits of rax right by 10                                 |
+| rol rax,10     | rax = (rax << 10) | (rax >> 54) | Rotate bits of rax left by 10                                  |
++----------------+------------------------------------+--------------------------------------------------------------+
+
+
+Building executable.
+
+We can build executable using asm.
+.intel_syntax noprefix tells the assembler that you will be using Intel assembly syntax, and specifically the variant of it where you don't have to add extra prefixes to every instruction. 
+
+hacker@dojo:~$ as -o program.o program.s
+
+Here, the as tool reads in program.s, assembles it into binary code, and outputs an object file called program.o.
+This object file has actual assembled binary code, but it is not yet ready to be run. First, we need to link it.
+
+
+hacker@dojo:~$ ld -o program program.o
+
+
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ nano build-exc.s
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ as -o program.o build-exc.s 
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ ld -o program program.o 
+/nix/store/v9zpzmigqkcjrw1jpf0zjc49y47cm55s-binutils-2.44/bin/ld: warning: cannot find entry symbol _start; defaulting to 0000000000401000
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ nano build-exc.s 
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ as -o program.o build-exc.s 
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ ld -o program program.o 
+ubuntu@your-first-program~building-executables:~/doom/assembly_challenge$ 
+
+
+here output is kinda diff as first program doesn't contain
+.global _start
+_start:
+ 
+ where as second one does.
+
+
+ RIP can only be accessed with lea
+ lea rax , RIP
+ mov [rax] , rbx
+
+
+hacker@memory~dereferencing-pointers:/home/hacker/doom/assembly_challenge$ 
+
+Neat! Your program passed the tests! Great job!
+
+Here is your flag!
+pwn.college{g551U9QbkivtOWV99AS1LS_YA6D.dFzM5UDL1ATNwUzW}
+
+
 ──[ EOF ]──────────────────────────────────────────────────────────────────//───

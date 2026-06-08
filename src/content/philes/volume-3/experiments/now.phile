@@ -50,4 +50,59 @@ There are screens on:
 We can attactch to respective session using screen -r  xxxxx
 
 i.e screen -r mysession
+
+
+
+
+Screen is just a weird sort of terminal-with-a-terminal. But it can be much more!
+
+Inside a single screen session, you can have multiple windows, like your browser has multiple tabs. This can be super handy for organizing different tasks!
+These windows are handled with different keyboard shortcuts, all starting with Ctrl-A:
+
+Ctrl-A c - Create a new window
+Ctrl-A n - Next window
+Ctrl-A p - Previous window
+Ctrl-A 0 through Ctrl-A 9 - Jump directly to window 0-9
+Ctrl-A " - bring up a selection menu of all of the windows
+
+
+-----------------------
+
+
+tmux (terminal multiplexer) is screen's younger, more modern cousin. It does all the same things but with some different key bindings. 
+The biggest difference? Instead of Ctrl-A, tmux uses Ctrl-B as its command prefix.
+
+
+It can be detached using Ctrl-B + d
+
+hacker@dojo:~$ tmux
+[doing some work...]
+[Press Ctrl-B, then d]
+[detached (from session 0)]
+hacker@dojo:~$ 
+The commands also differ:
+
+tmux ls - List sessions
+tmux attach or tmux a - Reattach to session
+
+
+
+Let's learn to navigate windows in tmux!
+
+Just like screen, tmux has windows. The key combos are different, but the concept is the same:
+
+Ctrl-B c - Create a new window
+Ctrl-B n - Next window
+Ctrl-B p - Previous window
+Ctrl-B 0 through Ctrl-B 9 - Jump to window 0-9
+Ctrl-B w - See a nice window picker
+Tmux shows your windows at the bottom in a status bar that looks like:
+
+[0] 0:bash* 1:bash
+The * shows your current window, and each entry also shows the process that the window was created to run.
+
+
+
+
+
 ──[ EOF ]──────────────────────────────────────────────────────────────────//───
