@@ -8,5 +8,62 @@ redacted: false
 
 We'll look at several ways to introspect, debug, and understand software.
 
+# Objdump
+
+we will start with one of the most common tools for disassembly: objdump. 
+Given a binary, objdump -d will disassemble the executable sections and show you the assembly instructions:
+
+Given a binary, objdump -d will disassemble the executable sections and show you the assembly instructions
+
+~/doom/assembly_challenge$ objdump -d -M intel data
+
+data:     file format elf64-x86-64
+
+
+Disassembly of section .text:
+
+0000000000401000 <__bss_start-0x1000>:
+  401000:	48 c7 c0 3c 00 00 00 	mov    rax,0x3c
+  401007:	48 89 f7             	mov    rdi,rsi
+  40100a:	0f 05                	syscall
+
+
+By default, objdump uses the wrong assembly syntax, which is why we pass the -M intel option.
+Objdump displays the raw bytes of each instruction (e.g., the hexadecimal values 0f 05 is the syscall instruction) alongside the human-readable assembly
+
+Third, the values that are being moved into registers are also represented as hexadecimal.
+ This can make it slightly tricky to understand what the program is doing. 
+
+By viewing the raw data sometime we can extract many different such secrets, some of which are security relevant!
+
+
+# Strace
+
+The first one is pretty simple: the syscall tracer, strace.
+
+Given a program to run, strace will use functionality of the Linux operating system to introspect and record every system call that the program invokes, and its result.
+For example, let's look at our program from the previous challenge:
+
+
+Strace reports what system calls are triggered, what parameters were passed to them, and what data they returned.
+The syntax used here for output is system_call(parameter, parameter, parameter, ...). 
+
+strace /challenge/trace-me 
+execve("/challenge/trace-me", ["/challenge/trace-me"], 0x7ffe65222a00 /* 15 vars */) = 0
+alarm(3665)                             = 0
+exit(0)                                 = ?
++++ exited with 0 +++
+
+Here it report two syscall alarm(3665) & exit(0)
+
+ For example, the alarm system call (syscall number 37!) will set a timer in the operating system, and when that many seconds pass, Linux will terminate the program. 
+ The point of alarm is to, e.g., kill the program when it's frozen,
+
+
+
+ #  GDB. 
+ GDB stands for the GNU Debugger, and it is typically used to hunt down and understand bugs.
+  More specifically, a debugger is a tool that enables the close monitoring and introspection of another process. 
+  There are many famous debuggers, and in the Linux space, gdb is by far the most common
 
 ──[ EOF ]──────────────────────────────────────────────────────────────────//───
