@@ -469,7 +469,6 @@ mov eax , 0x0a0a0a
 mov [rsi] , eax
 
 
-
 .data
  
 mem: .skip 1024 , 0xff
