@@ -1,0 +1,59 @@
+---
+title: "More Asm"
+date: 2026-05-11
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+
+
+Little endianess
+
+
+In x86 architechture every multi-value data are stored in little endianess format. (Low byte first)
+Seen in Raw-mem, hex dumps, debugger, exploits.
+
+
+
+Every value wider than a single byte (a 16, 32, or 64-bit number, a memory address, etc) has to be split into individual bytes to live in memory, because memory is addressed one byte at a time. Being used to working with large decimal numbers 
+MSB -> 1337   <- LSB 
+
+
+If we store 
+0x1234  -> it'll be stored as 12 34.
+
+
+
+Some doesn't works like this
+
+SOme architechture stores the lSB in left and MSB on right.
+
+0x1234 -> 34 12 
+Because the little significant goes first these are called little endianess arch.
+Most mordern CPU architechture.
+
+
+
+size of value	decimal value	hex value	big endian bytes (NOT x86)	little endian bytes (x86)
+8 (1 byte)	    65	                0x41	        41	                         41
+16 (2 bytes)	4660	         0x1234	           12 34                       	34 12
+32 (4 bytes)	1145258561	0x44434241	        44 43 42 41             	41 42 43 44
+64 (8 bytes)	1145258561	0x0000000044434241	00 00 00 00 44 43 42 41 	41 42 43 44 00 00 00 00
+
+
+
+
+
+Name            	Bits	Bytes	Partial rax Access	                    Memory Access
+byte            	8	    1	    mov al, [rdi]	            mov BYTE PTR [rdi], 0x11
+word            	16	    2	    mov ax, [rdi]           	mov WORD PTR [rdi], 0x1122
+doubleword (dword)	32	    4	    mov eax, [rdi]          	mov DWORD PTR [rdi], 0x11223344
+quadword (qword)	64	    8	    mov rax, [rdi]          	mov QWORD PTR [rdi], 0x1122334455667788
+
+
+
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───
