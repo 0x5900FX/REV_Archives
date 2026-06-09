@@ -1,0 +1,45 @@
+---
+title: "Odd Even library in Asm"
+date: 2026-05-11
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+Writing a shared library which take number as input in rdx and uses and instruction to check if number is Odd/Even
+
+
+The last bit of a num determine if it's odd or even
+Here is the rule for a single pair of bits:
+
+0 & 0 = 0
+0 & 1 = 0
+1 & 0 = 0
+1 & 1 = 1
+
+.intel_syntax noprefix
+.global solve
+
+solve:
+
+mov bl , dil
+and bl , 1
+ 
+cmp bl , 1
+jnz done
+mov rax , 0
+ret
+done:
+mov rax ,1 
+ret
+
+
+
+as --64 -o o.o odd_even.s 
+
+ld -shared o.o -o o.so
+
+/challenge/check o.so
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───
