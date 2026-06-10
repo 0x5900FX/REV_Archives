@@ -36,6 +36,7 @@ Third, the values that are being moved into registers are also represented as he
 
 By viewing the raw data sometime we can extract many different such secrets, some of which are security relevant!
 
+View the raw data content of .rodata using  objdump -s -j .rodata xxx_file_name
 
 # Strace
 

@@ -43,12 +43,19 @@ ld -shared o.o -o o.so
 
 
 
+
 ---------------
+
+
 
 
 LowerCasing a string in Asm Library 
 the value is in RDI and return the lowercase in RAX
 
+In ASCII, an uppercase letter and its lowercase partner differ only in bit 5. The lowercase value is the uppercase value with bit 5 set:
+If we were to turn on 5th bit on a uppercase string then we can get lowercase letter.
+
+00100000 -> 0x20 ( if we or the value with 0x20). We get the lwoer case string.
 
 .intel_syntax noprefix
 .global chr_lower
@@ -57,6 +64,146 @@ chr_lower:
 mov rax , rdi
 or rax , 0x20
 ret
+
+
+
+-----------------
+
+uppercasing a strin in ASM library.
+
+Changing the each byte of string .
+loop -> movr against all char
+and al , 0xDF couonters 0x20 for uppercase string.
+mov byte ptr [rdi] , 1 
+stores the data back at [rdi]
+
+
+
+.intel_syntax noprefix
+.global str_upper
+
+
+
+str_upper:
+mov rax , rdi
+
+loop:
+mov al , byte ptr [rdi]
+cmp al , 0
+je done
+
+
+and al , 0xDF
+mov byte ptr [rdi] , al
+inc rdi
+jmp loop
+
+done:
+mov rax , rdi
+ret
+
+
+Swapping stringcase.
+
+.intel_syntax noprefix
+.global str_swapcase
+
+
+
+str_swapcase:
+mov rax , rdi
+
+loop:
+mov al , byte ptr [rdi]
+cmp al , 0
+je done
+
+
+xor al , 0x20
+mov byte ptr [rdi] , al
+inc rdi
+jmp loop
+
+done:
+ret
+
+
+It can be returned into rax uisng move rax , RDI
+
+
+-----
+
+
+
+Reading env variable assumeing everything is empty and env stack start from [rsp + 24]
+
+
+.intel_syntax noprefix
+
+mov rsi ,  [rsp + 24]
+add rsi , 5
+
+mov rax , 1
+mov rdi ,1 
+mov rdx , 64
+syscall 
+
+mov rax, 60
+syscall
+
+-----
+
+Creating our own stack assuming that takes a pointer to a buffer in rdi and a length in rsi, and returns, in rax, the number of distinct byte values among those rsi bytes. You might find the instruction mov [rsp+rcx], 1 useful for marking a given value (stored in rcx) as "present" in your buffer (pointed to by rsp).
+
+.intel_syntax noprefix
+.global solve
+
+
+solve:
+
+;#rdi -> ptr to buffer address
+;# rsi -> length of string
+sub rsp , 256 
+
+mov rbx  , rsp
+mov rcx , 256
+
+int_zero:
+mov byte ptr [rbx] , 0
+inc rbx
+dec rcx
+cmp rcx , 0
+jnz int_zero
+
+
+mov r8 , 0 ;# distinct byte counter
+
+#;input buffer loop
+xor rcx, rcx
+
+main_loop:
+cmp rcx, rsi
+je finish
+
+movzx rdx  , byte ptr [rdi + rcx]
+
+cmp byte ptr [rsp + rdx] , 0
+jne already_seen
+mov byte ptr [rsp+rdx] , 1
+inc r8
+
+
+already_seen:
+inc rcx
+jmp main_loop
+
+
+
+finish:
+mov rax , r8
+add rsp , 256
+ret
+
 
 
 
