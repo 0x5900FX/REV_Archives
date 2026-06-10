@@ -42,4 +42,25 @@ ld -shared o.o -o o.so
 /challenge/check o.so
 
 
+
+---------------
+
+
+LowerCasing a string in Asm Library 
+the value is in RDI and return the lowercase in RAX
+
+
+.intel_syntax noprefix
+.global chr_lower
+
+chr_lower:
+mov rax , rdi
+or rax , 0x20
+ret
+
+
+
+
+
+
 ──[ EOF ]──────────────────────────────────────────────────────────────────//───
