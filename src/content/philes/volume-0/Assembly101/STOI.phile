@@ -55,3 +55,74 @@ pop r8
 pop r10
 pop rbx
 ret
+
+
+
+---
+
+If we were to allow this library to handle a negative number than we can just do `neg rax` to negative the value at the end
+It can be implemented as below.
+
+
+.intel_syntax noprefix
+.global atoi_digit
+.global atoi
+.global _start
+
+
+atoi_digit:
+
+movzx rax, byte ptr [rdi]
+sub rax, '0'
+
+atoi_digit.ret:
+ret
+
+
+atoi:
+push rbx
+push r10
+push r8
+push rdi
+
+mov r10 ,10
+mov rbx , 0
+
+
+atoi_loop:
+cmp byte ptr [rdi] , '-'
+je atoi_non_normal_jmp
+
+
+
+cmp byte ptr [rdi] , 0
+je done
+
+call atoi_digit
+
+
+mov r8 , rax
+imul rbx , r10
+add rbx , r8
+
+inc rdi
+jmp atoi_loop
+
+atoi_non_normal_jmp:
+inc rdi
+jmp atoi_loop
+
+done:
+pop rdi
+mov rax, rbx
+
+cmp byte ptr [rdi] , '-'
+jne done.cont
+neg rax
+
+done.cont:
+pop r8
+pop r10
+pop rbx
+ret
+
