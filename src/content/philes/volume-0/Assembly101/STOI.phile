@@ -1,0 +1,57 @@
+---
+title: "Let's write a String to integer library in ASM"
+date: 2026-06-11
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+So i'll write a fucntion library that'll take string address in rdi and output the number in RAX register.
+It'll be a bit messy while taking the callee and caller saved reigster in consideration so
+Bear with it
+
+
+.intel_syntax noprefix
+.global atoi_digit
+.global atoi
+
+
+
+atoi_digit:
+movzx rax, byte ptr [rdi]
+sub rax, '0'
+ret
+
+atoi:
+
+
+push rbx
+push r10
+push r8
+
+mov r10 ,10
+mov rbx , 0
+
+
+atoi_loop:
+cmp byte ptr [rdi] , 0
+je done
+
+call atoi_digit
+
+
+mov r8 , rax
+imul rbx , r10
+add rbx , r8
+
+inc rdi
+jmp atoi_loop
+
+done:
+mov rax, rbx
+
+pop r8
+pop r10
+pop rbx
+ret
