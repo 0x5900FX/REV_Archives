@@ -1,0 +1,97 @@
+---
+title: "Update: added neg value functionality. Let's write a String to integer library in ASM "
+date: 2026-06-13
+author: "DeadBeat0x5900Fx"
+order: 0
+redacted: false
+---
+
+
+So i'll write a fucntion library that'll take string address in rdi and output the number in RAX register.
+It'll be a bit messy while taking the callee and caller saved reigster in consideration so
+Bear with it
+
+It's not able to process the negative value 
+.intel_syntax noprefix
+.global itoa
+.global itoa_digit
+
+
+ext:
+mov rax , 60
+mov rdi , 40
+syscall
+
+
+itoa_digit:
+mov rax , rdi
+add rax , 0x30
+ret
+
+
+itoa:
+push rbx
+xor r9,r9
+mov rax , rdi
+xor rcx ,rcx
+mov rbx , 10
+
+
+cmp rax , 0
+je case0
+jl case_neg
+
+
+
+
+itoa_loop:
+xor rdx, rdx
+div rbx
+
+mov r8 ,rax 
+mov rdi ,rdx
+call itoa_digit
+push rax
+mov rax , r8
+
+inc rcx 
+cmp rax , 0
+je itoa.done
+jmp itoa_loop
+
+itoa.done:
+mov r8 , rcx
+itoa.done.looper:
+cmp rcx , 0
+je itoa.out
+
+pop rax
+mov byte ptr [rsi],al
+inc rsi
+
+
+dec rcx
+jmp itoa.done.looper
+
+itoa.out:
+add r8, r9
+mov rax , r8
+pop rbx
+ret 
+
+case_neg:
+mov byte ptr [rsi] , '-'
+inc r9 
+neg rax
+inc rsi
+jmp itoa_loop
+
+
+case0:
+mov byte ptr [rsi] , '0'
+mov rax , 1
+pop rbx
+ret
+
+
+──[ EOF ]──────────────────────────────────────────────────────────────────//───
